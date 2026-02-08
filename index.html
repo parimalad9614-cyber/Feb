@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Will You Be My Valentine? 💝</title>
+    <title>Will You Be My Valentine? Sri..?💝</title>
     <link href="https://fonts.googleapis.com/css2?family=Italiana&family=Crimson+Pro:wght@300;400;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -286,13 +286,26 @@
  
         .button-container {
             position: relative;
-            min-height: 300px;
+            min-height: 200px;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 40px;
             margin-top: 20px;
+        }
+
+        .buttons-wrapper {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #noBtn.moving {
+            position: fixed;
+            z-index: 100;
         }
  
         button {
@@ -355,7 +368,7 @@
         #noBtn {
             background: var(--off-white);
             color: var(--pure-black);
-            position: absolute;
+            position: relative;
             border: 3px solid var(--pure-black);
             box-shadow: 4px 4px 0 var(--pure-black);
         }
@@ -549,6 +562,36 @@
                 font-size: 24px;
             }
         }
+
+        /* Music control button */
+        .music-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--crimson);
+            border: 3px solid var(--pure-black);
+            color: var(--off-white);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 4px 0 var(--pure-black);
+            transition: all 0.3s ease;
+        }
+
+        .music-control:hover {
+            transform: scale(1.1);
+            box-shadow: 6px 6px 0 var(--pure-black);
+        }
+
+        .music-control:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body>
@@ -575,6 +618,14 @@
     
     <div class="floating-hearts" id="floatingHearts"></div>
     
+    <!-- Background Music -->
+    <audio id="bgMusic" loop>
+        <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_4d8b25d36e.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Music Control Button -->
+    <button class="music-control" id="musicControl" title="Toggle Music">🔊</button>
+    
     <div class="container">
         <div class="heart-ornament">♥</div>
         <div class="heart-ornament">♥</div>
@@ -591,8 +642,10 @@
             <h1>Will You Be<span>My Valentine?</span></h1>
             <div class="divider"></div>
             <div class="button-container">
-                <button id="yesBtn">Yes!</button>
-                <button id="noBtn">No</button>
+                <div class="buttons-wrapper">
+                    <button id="yesBtn">Yes!</button>
+                    <button id="noBtn">No</button>
+                </div>
             </div>
         </div>
  
@@ -610,32 +663,80 @@
         const noBtn = document.getElementById('noBtn');
         const question = document.getElementById('question');
         const celebration = document.getElementById('celebration');
+        const bgMusic = document.getElementById('bgMusic');
+        const musicControl = document.getElementById('musicControl');
+
+        // Set initial volume
+        bgMusic.volume = 0.3;
+
+        // Auto-play music with user interaction fallback
+        function playMusic() {
+            bgMusic.play().catch(() => {
+                // If autoplay is blocked, play on first user interaction
+                document.body.addEventListener('click', () => {
+                    bgMusic.play();
+                    musicControl.textContent = '🔊';
+                }, { once: true });
+            });
+        }
+
+        // Music toggle control
+        musicControl.addEventListener('click', () => {
+            if (bgMusic.paused) {
+                bgMusic.play();
+                musicControl.textContent = '🔊';
+            } else {
+                bgMusic.pause();
+                musicControl.textContent = '🔇';
+            }
+        });
  
-        // Sophisticated No button evasion
+        // Make No button move ANYWHERE in the white container background
         function moveNoButton() {
-            const container = document.querySelector('.button-container');
+            const container = document.querySelector('.container');
             const containerRect = container.getBoundingClientRect();
             
-            const maxX = containerRect.width - noBtn.offsetWidth - 50;
-            const maxY = containerRect.height - noBtn.offsetHeight - 50;
+            // Add moving class to make it position fixed
+            noBtn.classList.add('moving');
             
-            const randomX = Math.random() * maxX;
-            const randomY = Math.random() * maxY;
+            // Calculate safe movement area within the white container
+            const padding = 60; // Keep away from edges
+            const minX = containerRect.left + padding;
+            const maxX = containerRect.right - noBtn.offsetWidth - padding;
+            const minY = containerRect.top + padding;
+            const maxY = containerRect.bottom - noBtn.offsetHeight - padding;
             
-            noBtn.style.transition = 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)';
+            // Generate random position anywhere in the container
+            const randomX = Math.random() * (maxX - minX) + minX;
+            const randomY = Math.random() * (maxY - minY) + minY;
+            
+            // Apply smooth movement with rotation
+            noBtn.style.transition = 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
-            noBtn.style.transform = `translate(-50%, -50%) rotate(${Math.random() * 20 - 10}deg)`;
+            noBtn.style.transform = `rotate(${Math.random() * 30 - 15}deg)`;
         }
  
-        noBtn.addEventListener('mouseenter', moveNoButton);
+        // Move on mouse enter (desktop hover)
+        noBtn.addEventListener('mouseenter', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
         
+        // Move on touch start (mobile)
         noBtn.addEventListener('touchstart', (e) => {
             e.preventDefault();
             moveNoButton();
         });
         
+        // Move on click attempt
         noBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+
+        // Move on mouse down
+        noBtn.addEventListener('mousedown', (e) => {
             e.preventDefault();
             moveNoButton();
         });
@@ -707,12 +808,8 @@
         
         // Initialize
         window.addEventListener('load', () => {
-            noBtn.style.position = 'absolute';
-            noBtn.style.left = '65%';
-            noBtn.style.top = '50%';
-            noBtn.style.transform = 'translate(-50%, -50%)';
-            
             createAmbientHearts();
+            playMusic();
             
             // Continuous ambient hearts
             setInterval(() => {
