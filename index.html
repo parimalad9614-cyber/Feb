@@ -51,7 +51,8 @@
  
         .button-container {
             position: relative;
-            height: 150px;
+            min-height: 300px;
+            width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -160,35 +161,33 @@
         const noBtn = document.getElementById('noBtn');
         const question = document.getElementById('question');
         const celebration = document.getElementById('celebration');
-        
-        let yesBtnSize = 20;
-        let noBtnClicks = 0;
  
         // Function to move the No button to a random position
         function moveNoButton() {
             const container = document.querySelector('.button-container');
             const containerRect = container.getBoundingClientRect();
             
-            const maxX = containerRect.width - noBtn.offsetWidth;
-            const maxY = containerRect.height - noBtn.offsetHeight;
+            // Calculate available space for the button to move
+            const maxX = containerRect.width - noBtn.offsetWidth - 20;
+            const maxY = containerRect.height - noBtn.offsetHeight - 20;
             
+            // Generate random position
             const randomX = Math.random() * maxX;
             const randomY = Math.random() * maxY;
             
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
-            
-            // Increase Yes button size
-            noBtnClicks++;
-            yesBtnSize += 5;
-            yesBtn.style.fontSize = yesBtnSize + 'px';
-            yesBtn.style.padding = (15 + noBtnClicks * 2) + 'px ' + (40 + noBtnClicks * 5) + 'px';
         }
  
-        // Move No button on hover
+        // Move No button on hover (desktop)
         noBtn.addEventListener('mouseenter', moveNoButton);
         
-        // Move No button on click (for mobile)
+        // Move No button on touch/click attempt (mobile)
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            moveNoButton();
+        });
+        
         noBtn.addEventListener('click', (e) => {
             e.preventDefault();
             moveNoButton();
@@ -218,6 +217,14 @@
                 }, i * 100);
             }
         }
+        
+        // Initialize No button position
+        window.addEventListener('load', () => {
+            noBtn.style.position = 'absolute';
+            noBtn.style.left = '60%';
+            noBtn.style.top = '50%';
+            noBtn.style.transform = 'translate(-50%, -50%)';
+        });
     </script>
 </body>
 </html>
